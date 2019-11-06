@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html ng-app="mitekMobileWeb" ng-controller="AppCtrl">
+<head>
+    <title>Mitek Mobile Web API Example: Selfie Capture</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+
+    <script type="text/javascript" src="../js/jquery-1.11.1-min.js"></script>
+    <script type="text/javascript" src="../js/MitekAPIUtils.js"></script>
+    <script type="text/javascript" src="../js/MitekCaptureParams.js"></script>
+
+    <script type="text/javascript" src="../src/cv.js"></script>
+    <script type="text/javascript" src="../src/jsfeat-min.js"></script>
+    <script type="text/javascript" src="../src/piexif.js"></script>
+
+    <!-- Mitek Mobile Web API -->
+    <!-- note: make sure to set the var mitekWorkerPath in MitekCaptureParams.js, prior to loading the below file -->
+    <script type="text/javascript" src="../src/MitekMobileWebAPI.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/styles.css">
+</head>
+
+<body>
+
+<script>
+    var captureResult;
+
+    function captureImage() {
+        MitekMobileWeb.captureAndProcessImage(captureCallback, 'Selfie');
+    }
+
+    function captureCallback(selfieCaptureResult) {
+
+        if (selfieCaptureResult.status == "success") {
+            captureResult = selfieCaptureResult;
+            $('#captureFailure').hide();
+            $('#captureSuccess').show();
+
+            // optionally show the captured image
+            $('#imagePreview').attr('src', 'data:image/jpeg;base64,' + captureResult.finalImage);
+
+        } else if (selfieCaptureResult.errors.length > 0) {
+
+            // optionally show the failed image
+            $('#imagePreview').attr('src', 'data:image/jpeg;base64,' + selfieCaptureResult.finalImage);
+
+            $('#captureSuccess').hide();
+            $('#captureFailure').show();
+            var captureErrors = MitekUtil.decodeCaptureErrorCodes(selfieCaptureResult.errors);
+            alert('Unable to read the capture your Selfie: Errors: ' + captureErrors);
+
+        } else {
+
+            // optionally show the failed image
+            $('#imagePreview').attr('src', 'data:image/jpeg;base64,' + selfieCaptureResult.finalImage);
+
+            $('#captureSuccess').hide();
+            $('#captureFailure').show();
+            alert('We were unable to capture your Selfie.  Please try again.');
+        }
+    }
+
+    function extractData() {
+
+        if (captureResult == null) {
+            alert('Please take a selfie.');
+        } else {
+
+            // get the token and call back-end
+        }
+    }
+
+</script>
+
+<div class="text-center">
+
+    <div class="helpText">
+        <h4>Take a selfie.</h4>
+        <img src="../images/selfie.png" height="150px"/>
+    </div>
+
+    <br/>
+
+    <div id="captureButtons">
+
+        <button id="captureButton" class="btn btn-default" onclick="captureImage()">
+            <img id="captureSuccess" class="resultImage" style="display: none" src="../images/green_check.png"/>
+            Capture Selfie</button>
+
+        <br/>
+
+        <img id="imagePreview" class="capturedImagePreview"/>
+
+        <br/>
+
+        <button id="extractDataButton" class="btn btn-primary" onclick="extractData()">Extract Data</button>
+
+    </div>
+
+    <div id="loadingResultsPleaseWait" style="display: none">
+        <img src="../images/loading.gif"/> Please wait...
+    </div>
+
+</div>
+
+</body>
+</html>

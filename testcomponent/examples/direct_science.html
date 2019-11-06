@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html ng-app="mitekMobileWeb" ng-controller="AppCtrl">
+<head>
+    <title>Mitek Mobile Web API Example: Direct Science Methods</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+
+    <script type="text/javascript" src="../js/jquery-1.11.1-min.js"></script>
+    <script type="text/javascript" src="../js/MitekAPIUtils.js"></script>
+    <script type="text/javascript" src="../js/MitekCaptureParams.js"></script>
+
+    <script type="text/javascript" src="../src/cv.js"></script>
+    <script type="text/javascript" src="../src/jsfeat-min.js"></script>
+    <script type="text/javascript" src="../src/piexif.js"></script>
+
+    <!-- Mitek Mobile Web API -->
+    <!-- note: make sure to set the var mitekWorkerPath in MitekCaptureParams.js, prior to loading the below file -->
+    <script type="text/javascript" src="../src/MitekMobileWebAPI.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/styles.css">
+</head>
+
+<body>
+
+<style>
+    h2, h3, h4 {
+        margin-bottom: 5px;
+    }
+</style>
+
+<script>
+
+function getDocumentType() {
+    return document.getElementById('documentType').value;
+}
+
+function showResult(result) {
+    showCapturedImage(result);
+    document.getElementById('result').innerHTML = JSON.stringify(result, null, 4);
+}
+
+function testFileInput(fileData) {
+    var params = {
+        documentType: getDocumentType(),
+        imageData: fileData.files[0],
+        callback: showResult
+    }
+
+    MitekMobileWeb.processImageFile(params);
+}
+
+function testDataURL() {
+    var params = {
+        documentType: getDocumentType(),
+        imageData: document.getElementById('datURL').value,
+        callback: showResult
+    }
+    MitekMobileWeb.processDataURL(params);
+}
+
+function testImageData(fileData) {
+
+    function processEncodedImage(imageData) {
+        var params = {
+            documentType: getDocumentType(),
+            imageData: imageData,
+            callback: showResult
+        }
+        MitekMobileWeb.processImageData(params);
+    }
+
+    // encode the image
+    MitekMobileWeb.encodeRawImage(fileData.files[0], processEncodedImage);
+}
+
+function showCapturedImage(result) {
+    $('#capturedImage').attr('src', 'data:image/jpeg;base64,' + result.finalImage);
+}
+
+
+</script>
+
+<div>
+
+    <center>
+
+    <h2>Direct Science Method Examples</h2>
+
+    <b>Document Type:</b> </b><select id="documentType">
+        <option value="DL_Front">DL_Front</option>
+        <option value="Document">Document</option>
+        <option value="Passport">Passport</option>
+        <option value="Check">Check</option>
+    </select>
+
+    </center>
+
+    <hr style="width: 100%">
+
+    <h3>Test File Input (processImageFile)</h3>
+    <input type="file" accept="image/*" onchange="testFileInput(this)">
+
+    <hr style="width: 100%">
+
+    <h3>Test Data URL Input (processDataURL)</h3>
+    <h4>Please enter in a dataURL below</h4>
+    <textarea id="datURL" style="width: 80%; height: 120px"></textarea>
+    <br/>
+    <button onclick="testDataURL()">GO!</button>
+
+    <hr style="width: 100%">
+
+    <h3>Test ImageData Input (processImageData)</h3>
+    <input type="file" accept="image/*" onchange="testImageData(this)">
+
+    <hr style="width: 100%">
+
+    <img id="capturedImage" width="80%"/>
+
+    <h1>Result</h1>
+    <textarea id="result" style="width: 80%; height: 200px"></textarea>
+
+</div>
+
+</body>
+</html>

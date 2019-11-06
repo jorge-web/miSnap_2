@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html ng-app="mitekMobileWeb" ng-controller="AppCtrl">
+<head>
+    <title>Mitek Mobile Web API Example: Back and Front If Needed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+
+    <script type="text/javascript" src="../js/jquery-1.11.1-min.js"></script>
+    <script type="text/javascript" src="../js/MitekAPIUtils.js"></script>
+    <script type="text/javascript" src="../js/MitekCaptureParams.js"></script>
+
+    <script type="text/javascript" src="../src/cv.js"></script>
+    <script type="text/javascript" src="../src/jsfeat-min.js"></script>
+    <script type="text/javascript" src="../src/piexif.js"></script>
+
+    <!-- Mitek Mobile Web API -->
+    <!-- note: make sure to set the var mitekWorkerPath in MitekCaptureParams.js, prior to loading the below file -->
+    <script type="text/javascript" src="../src/MitekMobileWebAPI.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/styles.css">
+</head>
+
+<body>
+
+<script>
+    var CaptureResult = {
+        "FrontCaptureResult": null,
+        "BackCaptureResult": null,
+        "TransactionReference": null
+    };
+
+    function captureFrontImage() {
+        MitekMobileWeb.captureAndProcessImage(captureFrontCallback, 'DL_Front');
+    }
+
+    function captureFrontCallback(frontCaptureResult) {
+
+        if (frontCaptureResult.status == "success") {
+            CaptureResult.FrontCaptureResult = frontCaptureResult;
+            $('#frontFailure').hide();
+            $('#frontSuccess').show();
+
+            // optionally show the captured image
+            $('#licenseFrontPreview').attr('src', 'data:image/jpeg;base64,' + frontCaptureResult.finalImage);
+
+        } else if (frontCaptureResult.errors.length > 0) {
+
+            // optionally show the failed image
+            $('#licenseFrontPreview').attr('src', 'data:image/jpeg;base64,' + frontCaptureResult.finalImage);
+
+            $('#frontSuccess').hide();
+            $('#frontFailure').show();
+            var captureErrors = MitekUtil.decodeCaptureErrorCodes(frontCaptureResult.errors);
+            alert('Unable to read the Front of your license: Errors: ' + captureErrors);
+        } else {
+
+            // optionally show the failed image
+            $('#licenseFrontPreview').attr('src', 'data:image/jpeg;base64,' + frontCaptureResult.finalImage);
+
+            $('#frontSuccess').hide();
+            $('#frontFailure').show();
+            alert('We were unable to read the Front of your license.  Please try again.');
+        }
+    }
+
+    function captureBackImage() {
+        MitekMobileWeb.captureAndProcessImage(captureBackCallback, 'DL_Back');
+    }
+
+    function captureBackCallback(backCaptureResult) {
+
+        if (backCaptureResult.status == "success") {
+            CaptureResult.BackCaptureResult = backCaptureResult;
+            $('#backFailure').hide();
+            $('#backSuccess').show();
+
+            // optionally show the captured image
+            $('#licenseBackPreview').attr('src', 'data:image/jpeg;base64,' + backCaptureResult.finalImage);
+
+        } else if (backCaptureResult.errors.length > 0) {
+
+            // optionally show the failed image
+            $('#licenseBackPreview').attr('src', 'data:image/jpeg;base64,' + backCaptureResult.finalImage);
+
+            $('#backSuccess').hide();
+            $('#backFailure').show();
+            var captureErrors = MitekUtil.decodeCaptureErrorCodes(backCaptureResult.errors);
+            alert('Unable to read the Back of your license: Errors: ' + captureErrors);
+        } else {
+
+            // optionally show the failed image
+            $('#licenseBackPreview').attr('src', 'data:image/jpeg;base64,' + backCaptureResult.finalImage);
+
+            $('#backSuccess').hide();
+            $('#backFailure').show();
+            alert('Unable to read the Back of your license.  Please try again.');
+        }
+    }
+
+
+    function extractData() {
+
+        if (CaptureResult.BackCaptureResult == null && CaptureResult.FrontCaptureResult == null) {
+
+            alert('Please take a picture of your license to continue.');
+
+        } else {
+
+            // get the token and call back-end
+        }
+    }
+
+    function retryCapture() {
+
+        CaptureResult = {
+            "FrontCaptureResult": null,
+            "BackCaptureResult": null,
+            "TransactionReference": null
+        };
+
+        $('.resultImage').hide();
+        $('#loadingResultsPleaseWait').hide();
+        $('#captureFrontContainer').hide();
+        $('#captureBackContainer').show();
+        $('#captureButtons').show();
+    }
+    function showCaptureFront() {
+
+        $('#helpTextBack').hide();
+        $('#helpTextFront').show();
+        $('#loadingResultsPleaseWait').hide();
+        $('#captureBackContainer').hide();
+        $('#captureFrontContainer').show();
+        $('#captureButtons').show();
+    }
+    function showPleaseWait() {
+        $('.helpText').hide();
+        $('#captureButtons').hide();
+        $('#loadingResultsPleaseWait').show();
+    }
+    function showResults() {
+        $('#captureButtons').hide();
+        $('#loadingResultsPleaseWait').hide();
+    }
+</script>
+
+<div class="text-center">
+
+    <div class="helpText" id="helpTextBack">
+        <h4>Take a picture of the back of your license so we can capture the barcode.</h4>
+        <h4>The barcode on the back of your license looks like this:</h4>
+        <img src="../images/barcode.png" height="100px"/>
+    </div>
+
+    <div class="helpText" id="helpTextFront" style="display: none">
+        <h4>Take a picture of the Front of your license.</h4>
+        Make sure to:
+        <ul>
+            <li>Watch for glare</li>
+            <li>Use a dark background</li>
+            <li>Make sure image is in focus</li>
+        </ul>
+    </div>
+
+    <div id="captureButtons">
+
+        <div id="captureBackContainer">
+
+            <button id="backCaptureButton" class="btn btn-default" onclick="captureBackImage()">
+                <img id="backSuccess" class="resultImage" style="display: none" src="../images/green_check.png"/>
+                <img id="backFailure" class="resultImage" style="display: none" src="../images/red_x.png"/>
+                Capture DL Back</button>
+
+            <br/>
+            <a href="javascript:showCaptureFront()">I don't have a barcode</a>
+
+            <br/>
+
+            <img id="licenseBackPreview" class="capturedImagePreview"/>
+
+            <br/><br/>
+
+        </div>
+
+        <div id="captureFrontContainer" style="display: none;" align="center">
+
+            <button id="frontCaptureButton" class="btn btn-default" onclick="captureFrontImage()">
+                <img id="frontSuccess" class="resultImage" style="display: none" src="../images/green_check.png"/>
+                <img id="frontFailure" class="resultImage" style="display: none" src="../images/red_x.png"/>
+                Click to Capture DL Front</button>
+
+            <br/>
+
+            <img id="licenseFrontPreview" class="capturedImagePreview"/>
+
+            <br/>
+
+        </div>
+
+        <button id="extractDataButton" class="btn btn-primary" onclick="extractData()">Extract License Data</button>
+
+    </div>
+
+    <div id="loadingResultsPleaseWait" style="display: none">
+        <img src="../images/loading.gif"/> Please wait...
+    </div>
+
+</div>
+
+</body>
+</html>

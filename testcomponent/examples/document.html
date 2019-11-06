@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html ng-app="mitekMobileWeb" ng-controller="AppCtrl">
+<head>
+    <title>Mitek Mobile Web API Example: Document Capture</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+
+    <script type="text/javascript" src="../js/jquery-1.11.1-min.js"></script>
+    <script type="text/javascript" src="../js/MitekAPIUtils.js"></script>
+    <script type="text/javascript" src="../js/MitekCaptureParams.js"></script>
+
+    <script type="text/javascript" src="../src/cv.js"></script>
+    <script type="text/javascript" src="../src/jsfeat-min.js"></script>
+    <script type="text/javascript" src="../src/piexif.js"></script>
+
+    <!-- Mitek Mobile Web API -->
+    <!-- note: make sure to set the var mitekWorkerPath in MitekCaptureParams.js, prior to loading the below file -->
+    <script type="text/javascript" src="../src/MitekMobileWebAPI.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/styles.css">
+</head>
+
+<body>
+
+<script>
+    var captureResult;
+
+    function captureImage() {
+        MitekMobileWeb.captureAndProcessImage(captureCallback, 'Document');
+    }
+
+    function captureCallback(documentCaptureResult) {
+        if (documentCaptureResult.status == "success") {
+            captureResult = documentCaptureResult;
+            $('#captureFailure').hide();
+            $('#captureSuccess').show();
+
+            // optionally show the captured image
+            $('#imagePreview').attr('src', 'data:image/jpeg;base64,' + captureResult.finalImage);
+
+        } else if (documentCaptureResult.errors.length > 0) {
+
+            // optionally show the failed image
+            $('#imagePreview').attr('src', 'data:image/jpeg;base64,' + documentCaptureResult.finalImage);
+
+            $('#captureSuccess').hide();
+            $('#captureFailure').show();
+            var captureErrors = MitekUtil.decodeCaptureErrorCodes(documentCaptureResult.errors);
+            alert('Unable to process your document: Errors: ' + captureErrors);
+
+        } else {
+
+            // optionally show the failed image
+            $('#imagePreview').attr('src', 'data:image/jpeg;base64,' + documentCaptureResult.finalImage);
+
+            $('#captureSuccess').hide();
+            $('#captureFailure').show();
+            alert('Unable to process your document.  Please try again.');
+        }
+    }
+
+    function extractData() {
+
+        if (captureResult == null) {
+            alert('Please take a picture of the front of your document.');
+        } else {
+
+            // get the token and call back-end
+        }
+    }
+
+    function retryCapture() {
+
+        captureResult = null;
+
+        $('.resultImage').hide();
+        $('#loadingResultsPleaseWait').hide();
+        $('#imagePreview').attr('src', '');
+        $('.helpText').show();
+        $('#captureButtons').show();
+    }
+    function showPleaseWait() {
+        $('.helpText').hide();
+        $('#captureButtons').hide();
+        $('#loadingResultsPleaseWait').show();
+    }
+    function showResults() {
+        $('#captureButtons').hide();
+        $('#loadingResultsPleaseWait').hide();
+    }
+</script>
+
+<div class="text-center">
+
+    <div class="helpText">
+        <h4>Take a picture of your document.</h4>
+        <h4>Make sure to capture all four corners of the document you wish to capture.</h4>
+        <img src="../images/document.jpg" height="300px"/>
+    </div>
+
+    <div id="captureButtons">
+
+        <button id="captureButton" class="btn btn-default" onclick="captureImage()">
+            <img id="captureSuccess" class="resultImage" style="display: none" src="../images/green_check.png"/>
+            <img id="captureFailure" class="resultImage" style="display: none" src="../images/red_x.png"/>
+            Capture Document</button>
+
+        <br/>
+
+        <img id="imagePreview" class="capturedImagePreview"/>
+
+        <br/>
+
+        <button id="extractDataButton" class="btn btn-primary" onclick="extractData()">Extract Data</button>
+
+    </div>
+
+    <div id="loadingResultsPleaseWait" style="display: none">
+        <img src="../images/loading.gif"/> Please wait...
+    </div>
+
+</div>
+
+</body>
+</html>

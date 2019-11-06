@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html ng-app="mitekMobileWeb" ng-controller="AppCtrl">
+<head>
+    <title>Mitek Mobile Web API Example: Passport Capture (MRZ)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+
+    <script type="text/javascript" src="../js/jquery-1.11.1-min.js"></script>
+    <script type="text/javascript" src="../js/MitekAPIUtils.js"></script>
+    <script type="text/javascript" src="../js/MitekCaptureParams.js"></script>
+
+    <script type="text/javascript" src="../src/cv.js"></script>
+    <script type="text/javascript" src="../src/jsfeat-min.js"></script>
+    <script type="text/javascript" src="../src/piexif.js"></script>
+
+    <!-- Mitek Mobile Web API -->
+    <!-- note: make sure to set the var mitekWorkerPath in MitekCaptureParams.js, prior to loading the below file -->
+    <script type="text/javascript" src="../src/MitekMobileWebAPI.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/styles.css">
+</head>
+
+<body>
+
+<script>
+    var captureResult;
+
+    function captureImage(e) {
+        MitekMobileWeb.captureAndProcessImage(captureCallback, 'Passport');
+        e.target.blur();
+    }
+
+    function captureCallback(passportCaptureResult) {
+        console.log("entro2");
+        if (passportCaptureResult.status == "success") {
+            captureResult = passportCaptureResult;
+            $('#captureFailure').hide();
+            $('#captureSuccess').show();
+
+            // optionally show the captured image
+            $('#imagePreview').attr('src', 'data:image/jpeg;base64,' + captureResult.finalImage);
+
+        } else if (passportCaptureResult.errors.length > 0) {
+
+            // optionally show the failed image
+            $('#imagePreview').attr('src', 'data:image/jpeg;base64,' + passportCaptureResult.finalImage);
+
+            $('#captureSuccess').hide();
+            $('#captureFailure').show();
+            var captureErrors = MitekUtil.decodeCaptureErrorCodes(passportCaptureResult.errors);
+            alert('Unable to capture a good image of your passport: Errors: ' + captureErrors);
+
+        } else {
+
+            // optionally show the failed image
+            $('#imagePreview').attr('src', 'data:image/jpeg;base64,' + passportCaptureResult.finalImage);
+
+            $('#captureSuccess').hide();
+            $('#captureFailure').show();
+            alert('Unable to capture a good image of your passport.  Please try again.');
+        }
+    }
+
+    function extractData() {
+        console.log("captureResult", captureResult);
+        const uuid = window.location.search.split("=")[1];
+        const data = {image:captureResult.finalImage, uuid:uuid.slice(0,(uuid.length - 9))};
+        const url = "https://10.130.4.155/v3/experian/"+data.uuid+"/check"
+        //const url = "https://taxchatapid.ey.com/v3/experian/"+data.uuid+"/check"
+        const obj = {}
+        
+        if (captureResult == null) {
+            alert('Please take a picture of the front of your passport.');
+        } else { 
+
+            
+            fetch(
+                url, 
+                {
+                    method: 'POST', 
+                    body: JSON.stringify(obj),
+                    headers:{
+                        'Content-Type': 'application/json'
+                    }
+                }).then(res => {
+                        res.status == 200 ? window.close() : alert("something was wrong please try again")
+                })
+                .catch(error => {alert("something was wrong please try again"); console.error('Error:', error)})
+                .then(response => console.log('Success:', response));
+        }
+
+    }
+
+    function retryCapture() {
+
+        captureResult = null;
+
+        $('.resultImage').hide();
+        $('#loadingResultsPleaseWait').hide();
+        $('#imagePreview').attr('src', '');
+        $('.helpText').show();
+        $('#captureButtons').show();
+    }
+    function showPleaseWait() {
+        $('.helpText').hide();
+        $('#captureButtons').hide();
+        $('#loadingResultsPleaseWait').show();
+    }
+    function showResults() {
+        $('#captureButtons').hide();
+        $('#loadingResultsPleaseWait').hide();
+    }
+
+
+    $(window).resize(function(){
+        window.resizeTo(660,390);
+    });
+
+    $(window).blur(function(e) {
+        
+        //document.activeElement.tagName !== "BUTTON" && window.close();
+    })
+
+</script>
+
+<div class="text-center">
+
+    <div class="helpText">
+        <h5><b>Take a picture of your passport. Make sure to:</b></h5>
+        <h5>The MRZ line on the front of your passport is located at the bottom of the passport as depicted below:</h5>
+        <br/><br/>
+        <div class="img-container">
+            <img src="../images/mrz.png" height="200px"/>
+        </div>
+    </div>
+
+    <br/>
+
+    <div id="captureButtons">
+    <div class="passport-container">
+
+            <button id="captureButton" class="btn btn-default" onclick="captureImage()">
+                    <img id="captureSuccess" class="resultImage" style="display: none" src="../images/green_check.png"/>
+                    <img id="captureFailure" class="resultImage" style="display: none" src="../images/red_x.png"/>
+                    Capture Passport</button>
+        
+                <br/>
+                
+                <div class="img-container">
+                    <img id="imagePreview" class="capturedImagePreview"/>
+                </div>
+           
+        
+                <br/>
+        
+                <button id="extractDataButton" class="btn btn-primary" onclick="extractData()">Send</button>
+        
+            </div>
+        
+            <div id="loadingResultsPleaseWait" style="display: none">
+                <img src="../images/loading.gif"/> Please wait...
+            </div>
+
+    </div>
+
+        
+
+</div>
+
+</body>
+</html>

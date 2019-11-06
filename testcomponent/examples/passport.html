@@ -65,7 +65,7 @@
     function extractData() {
         window.opener.exapmple("hola Doc");
         console.log("captureResult", captureResult);
-        const uuid = window.location.search.split("=")[1];
+        /*const uuid = window.location.search.split("=")[1];
         const data = {image:captureResult.finalImage, uuid:uuid.slice(0,(uuid.length - 9))};
         const url = "https://10.130.4.155/v3/experian/"+data.uuid+"/check"
         //const url = "https://taxchatapid.ey.com/v3/experian/"+data.uuid+"/check"
@@ -90,7 +90,7 @@
                 .catch(error => {alert("something was wrong please try again"); console.error('Error:', error)})
                 .then(response => console.log('Success:', response));
         }
-
+*/
     }
 
     function retryCapture() {

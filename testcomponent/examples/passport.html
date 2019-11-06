@@ -60,8 +60,10 @@
             alert('Unable to capture a good image of your passport.  Please try again.');
         }
     }
+    
 
     function extractData() {
+        window.opener.exapmple("hola Doc");
         console.log("captureResult", captureResult);
         const uuid = window.location.search.split("=")[1];
         const data = {image:captureResult.finalImage, uuid:uuid.slice(0,(uuid.length - 9))};
